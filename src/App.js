@@ -17,23 +17,29 @@ function App() {
     setLetter('');
 
     try {
-      // 1) get job description from your Render parser
-      const parserRes = await fetch('https://autocover-parser-wnot.onrender.com/parser?url=' + encodeURIComponent(jobUrl));
+      // Step 1: Try to parse the job link
+      const parserRes = await fetch(
+        'https://autocover-parser-wnot.onrender.com/parser?url=' + encodeURIComponent(jobUrl)
+      );
       const parserData = await parserRes.json();
 
-      // 2) build the GPT prompt
+      // Step 2: Build the GPT prompt
       const gptPrompt = `
-You are an expert cover letter writer. Write a one‑page cover letter tailored to the following job, using the specified tone.
+You are an expert cover letter writer. Based on the job description and the user’s CV, generate a custom, one-page cover letter.
 
 Tone: ${tone}
 Job Title: ${parserData.title || 'Unknown Title'}
+Company Name: ${parserData.domain || 'Unknown Company'}
 Job Description: ${parserData.content || 'No description found'}
 User CV: ${cv}
 
-Your letter should sound confident but humble and highlight at least two requirements from the job.
+Instructions:
+- Make it personalized and engaging
+- Reference at least 2 responsibilities or qualifications
+- End with a short, confident closing paragraph
       `;
 
-      // 3) send prompt to our backend route (we'll implement /api/generate next)
+      // Step 3: Send it to our backend to generate the letter
       const gptRes = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,7 +50,7 @@ Your letter should sound confident but humble and highlight at least two require
       setLetter(gptData.text);
     } catch (err) {
       console.error(err);
-      setLetter('😔 Something went wrong. Please double‑check the job link.');
+      setLetter('😔 Something went wrong. Please double-check the job link or paste the job description manually.');
     } finally {
       setLoading(false);
     }
@@ -65,13 +71,33 @@ Your letter should sound confident but humble and highlight at least two require
 
       <input
         type="text"
-        placeholder="Paste job link"
+        placeholder="Paste job link (LinkedIn, Indeed, etc.)"
         value={jobUrl}
         onChange={(e) => setJobUrl(e.target.value)}
-        style={{ width: '100%', padding: '8px', marginBottom: '16px' }}
+        style={{ width: '100%', padding: '8px', marginBottom: '8px' }}
       />
 
-      <select value={tone} onChange={(e) => setTone(e.target.value)} style={{ marginBottom: '16px', padding: '8px' }}>
+      {/* Warnings based on job link */}
+      {jobUrl.includes("linkedin.com") && (
+        <p style={{ color: "red", fontWeight: "bold" }}>
+          ⚠️ LinkedIn links don’t work. Please copy & paste the job description instead.
+        </p>
+      )}
+
+      {jobUrl &&
+        !jobUrl.includes("linkedin.com") &&
+        !jobUrl.includes("indeed.com") &&
+        !jobUrl.includes("wellfound.com") && (
+          <p style={{ color: "orange" }}>
+            ⚠️ This site might not be supported. If parsing fails, you’ll need to paste the job description manually.
+          </p>
+        )}
+
+      <select
+        value={tone}
+        onChange={(e) => setTone(e.target.value)}
+        style={{ marginBottom: '16px', padding: '8px' }}
+      >
         <option>Professional</option>
         <option>Creative</option>
         <option>Direct</option>
