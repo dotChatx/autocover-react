@@ -23,10 +23,11 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+
     const text = data.choices?.[0]?.message?.content || 'No response';
     res.status(200).json({ text });
   } catch (error) {
-    console.error(error);
+    console.error('Azure API error:', error);
     res.status(500).json({ error: 'Error calling Azure OpenAI' });
   }
 }
