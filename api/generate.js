@@ -5,7 +5,7 @@ export default async function handler(req, res) {
 
   const { prompt } = req.body;
 
-  const endpoint = 'https://autocover-openai.openai.azure.com/openai/deployments/cover-letter-bot/chat/completions?api-version=2023-05-15';
+  const endpoint = 'https://autocover-openai.openai.azure.com/openai/deployments/cover-letter-bot/chat/completions?api-version=2025-01-01-preview';
   const apiKey = process.env.AZURE_API_KEY;
 
   try {
